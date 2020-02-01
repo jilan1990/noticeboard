@@ -1,0 +1,210 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Getting Started: Serving Web Content</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script src="js/angular.min.js"></script>
+    
+    <style>
+   table, th , td {
+      border: 1px solid grey;
+      border-collapse: collapse;
+      padding: 5px;
+   }
+   table tr:nth-child(odd) {
+      background-color: #f2f2f2;
+   }
+   table tr:nth-child(even) {
+      background-color: #ffffff;
+   }
+   .redClass {
+     background-color:red;
+   }
+</style>
+</head>
+<body ng-app="myApp">
+
+<div ng-controller="searchCtrl">
+	
+	<div>
+		<div>
+	       捐赠方式:
+			<div>
+				<label>
+				<input name="method" type="radio" value="A.捐款" ng-model="method"/>
+				捐款
+				</label>
+			</div>
+			<div>
+				<label>
+				<input name="method" type="radio" value="B.捐物" ng-model="method"/>
+				捐物
+				</label>
+			</div>
+		</div>
+		
+		<div>
+	      物资:
+			<div>
+				<label>
+				<input name="commodity" type="radio" value="A.N95口罩" ng-model="commodity"/>
+				N95口罩
+				</label>
+			</div>
+			<div>
+				<label>
+				<input name="commodity" type="radio" value="B.护目镜" ng-model="commodity"/>
+				护目镜
+				</label>
+			</div>
+			<div>
+				<label>
+				<input name="commodity" type="radio" value="C.防护服" ng-model="commodity"/>
+				防护服
+				</label>
+			</div>
+			<div>
+				<label>
+				<input name="commodity" type="radio" value="D.医用外科口罩" ng-model="commodity"/>
+				医用外科口罩
+				</label>
+			</div>
+			<div>
+				<label>
+				<input name="commodity" type="radio" value="E.其他" ng-model="commodity"/>
+				其他
+				</label>
+			</div>
+		</div>
+		
+	   <label>
+	   品牌:
+	    <input  type="text" name="brand" ng-model="brand" />
+	    </label><br/>
+	    
+	   <label>
+	   型号:
+	    <input  type="text" name="type" ng-model="type"/>
+	    </label><br/>
+	    
+	   <label>
+	   数目:
+	    <input  type="text" name="amount" ng-model="amount"/>
+	    </label><br/>
+	 
+	    <label>
+	       公示名:
+	      <input  type="text" name="name"  ng-model="name"/>
+	    </label><br/>
+	    
+	    <label>
+	       备注:
+	      <input  type="text" name="remark"  ng-model="remark"/>
+	    </label><br/>
+	
+	   <label>{{errorMsg}}</label><br/>
+	   <button ng-click="lurk()">查询</button>
+	   
+	</div>
+    
+	
+<table>
+   <tr>
+      <th>确认时间</th>
+      <th>捐赠方式</th>
+      <th>物资</th>
+      <th>品牌</th>
+      <th>型号</th>
+      <th>数目</th>
+      <th>公示名</th>
+      <th>备注</th>
+   </tr>
+   
+   <tr ng-repeat="notice in notices">
+   
+      <td>{{ notice.time }}</td>
+      <td>{{ notice.method }}</td>
+      <td>{{ notice.commodity }}</td>
+      <td>{{ notice.brand }}</td>
+      <td>{{ notice.type }}</td>
+      <td>{{ notice.amount }}</td>
+      <td>{{ notice.name }}</td>
+      <td>{{ notice.remark }}</td>
+   </tr>
+</table>
+	
+	
+</div>
+
+    
+    
+    <script>
+var app = angular.module('myApp', []);
+app.controller('searchCtrl', function($scope, $http) {
+
+
+	  $http.post("/notices",  { })
+	  .then(function (response) {
+		  var data = response.data;
+		  for (var idx in data) {
+			  var d = new Date(data[idx].ts);
+			  var year = d.getFullYear();
+			  var month = d.getMonth()+1;
+			  var day = d.getDate();
+			  var hour = d.getHours();
+			  var minute = d.getMinutes();
+			  data[idx].time = month+'/'+day+'/'+year+' '+hour+':'+minute;
+		  }
+		  $scope.notices = data;
+	});
+  
+  
+  $scope.lurk = function() {
+	  $scope.errorMsg = '';
+	  
+	  var params = { };
+	  params.method = $scope.method;
+	  params.commodity = $scope.commodity;
+	  params.brand = $scope.brand;
+	  params.type = $scope.type;
+	  params.amount = $scope.amount;
+	  params.name = $scope.name;
+	  params.remark = $scope.remark;
+	  console.log(JSON.stringify(params));
+
+	  $http.post("/notices", params)
+	  .success(function (response) {
+		  var data = response;
+		  for (var idx in data) {
+			  var d = new Date(data[idx].ts);
+			  var year = d.getFullYear();
+			  var month = d.getMonth()+1;
+			  var day = d.getDate();
+			  var hour = d.getHours();
+			  var minute = d.getMinutes();
+			  data[idx].time = month+'/'+day+'/'+year+' '+hour+':'+minute;
+		  }
+		  $scope.notices = data;
+		  
+
+		  $scope.method = '';
+		  $scope.commodity = '';
+		  $scope.brand = '';
+		  $scope.type = '';
+		  $scope.amount = '';
+		  $scope.name = '';
+		  $scope.remark = '';
+		  });
+  }
+  
+  function isValidIP(ip)
+  {   
+      var reg =  /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/
+      
+      return reg.test(ip);   
+  }
+   
+	});
+</script>
+</body>
+</html>
